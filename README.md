@@ -1,6 +1,6 @@
 # building an ai agents
 
-> building my own python asteroid game.
+> building my own ai agents
 
 ### find me here
 
