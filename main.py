@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -25,23 +26,29 @@ messages = [
     {"role": "user", "content": args.user_prompt},
 ]
 
-response = client.chat.completions.create(
-    model="openrouter/free",
-    messages=messages,  # type: ignore
-    tools=available_functions,  # type: ignore
-    temperature=0,
-)
+for _ in range(20):
+    response = client.chat.completions.create(
+        model="openrouter/free",
+        messages=messages,  # type: ignore
+        tools=available_functions,  # type: ignore
+        temperature=0,
+    )
 
-if response.usage is None:
-    raise RuntimeError("API request failed or returned no usage data.")
+    if response.usage is None:
+        raise RuntimeError("API request failed or returned no usage data.")
 
-if args.verbose:
-    print(f"User prompt: {args.user_prompt}")
-    print(f"Prompt tokens: {response.usage.prompt_tokens}")
-    print(f"Response tokens: {response.usage.completion_tokens}")
+    if args.verbose:
+        print(f"User prompt: {args.user_prompt}")
+        print(f"Prompt tokens: {response.usage.prompt_tokens}")
+        print(f"Response tokens: {response.usage.completion_tokens}")
 
-message = response.choices[0].message
-if message.tool_calls:
+    message = response.choices[0].message
+    messages.append(message)
+
+    if not message.tool_calls:
+        print(message.content)
+        break
+
     for tool_call in message.tool_calls:
         function = getattr(tool_call, "function", None)
         if function is None:
@@ -49,7 +56,9 @@ if message.tool_calls:
         result_message = call_function(tool_call, args.verbose)
         if not result_message["content"]:
             raise RuntimeError("Function call returned no content")
+        messages.append(result_message)
         if args.verbose:
             print(f"-> {result_message['content']}")
 else:
-    print(message.content)
+    print("Maximum iterations reached without a final response.")
+    sys.exit(1)
