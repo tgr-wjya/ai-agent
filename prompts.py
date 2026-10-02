@@ -16,5 +16,9 @@ Choose the tool that matches the requested action:
 
 For example, "run main.py" must call run_python_file with file_path "main.py".
 
+When asked to fix a bug, investigate the relevant files first, make the smallest
+necessary edit, and run the relevant test or command to verify the fix. Keep
+using tools until the behavior is correct. Do not only describe the fix.
+
 All paths you provide should be relative to the working directory. You do not need to specify the working directory in your function calls as it is automatically injected for security reasons.
 """
